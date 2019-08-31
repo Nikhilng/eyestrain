@@ -1,33 +1,39 @@
 var express = require('express'); 
 var app = express(); 
-  
+
 app.listen(3000, function() { 
     console.log('server running on port 3000'); 
 } ) 
   
-app.get('/eye', callName); 
+app.get('/eye', runPy); 
   
-function callName(req, res) { 
-      
-    // Use child_process.spawn method from  
-    // child_process module and assign it 
-    // to variable spawn 
-    var spawn = require("child_process").spawn; 
-      
-    // Parameters passed in spawn - 
-    // 1. type_of_script 
-    // 2. list containing Path of the script 
-    //    and arguments for the script  
-      
-    // E.g : http://localhost:3000/name?firstname=Mike&lastname=Will 
-    // so, first name = Mike and last name = Will 
-    var process = spawn('python',["./eye.py", 
-                            req.query.firstname, 
-                            req.query.lastname] ); 
-  
-    // Takes stdout data from script which executed 
-    // with arguments and send this data to res object 
-    process.stdout.on('data', function(data) { 
-        res.send(data.toString()); 
-    } ) 
-}
+let {PythonShell} = require('python-shell')
+
+function runPy(){
+    return new Promise(async function(resolve, reject){
+          let options = {
+          mode: 'text',
+          pythonOptions: ['-u'],
+          scriptPath: '',//Patto your script
+         };
+
+          await PythonShell.run('./eye2.py', options, function (err, results) {
+          //On 'results' we get list of strings of all print done in your py scripts sequentially. 
+          if (err) throw err;
+          console.log('results: ');
+          for(let i of results){
+                console.log(i, "---->", typeof i)
+          }
+      resolve(results[1])//I returned only JSON(Stringified) out of all string I got from py script
+     });
+   })
+ } 
+
+function runMain(){
+    return new Promise(async function(resolve, reject){
+        let r =  await runPy()
+        console.log(JSON.parse(JSON.stringify(r.toString())), "Done...!@")//Approach to parse string to JSON.
+    })
+ }
+
+runMain() //run main function

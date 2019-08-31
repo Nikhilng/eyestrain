@@ -1,0 +1,4 @@
+zerorpc
+tensorflow
+keras
+numpy
